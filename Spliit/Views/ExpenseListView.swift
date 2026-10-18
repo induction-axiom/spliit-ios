@@ -76,7 +76,8 @@ struct ExpenseListView: View {
                             ExpenseRow(
                                 expense: expense,
                                 payerPosition: model.participantPosition(expense.paidBy.id),
-                                formatter: model.moneyFormatter
+                                formatter: model.moneyFormatter,
+                                activeParticipantID: model.actorID
                             )
                         }
                         .buttonStyle(.plain)

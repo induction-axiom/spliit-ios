@@ -154,6 +154,11 @@ public struct ExpenseListItem: Decodable, Sendable, Identifiable, Hashable {
     public struct PaidFor: Decodable, Sendable, Hashable {
         public let participant: Participant
         public let shares: Int
+
+        public init(participant: Participant, shares: Int) {
+            self.participant = participant
+            self.shares = shares
+        }
     }
 
     public let id: String

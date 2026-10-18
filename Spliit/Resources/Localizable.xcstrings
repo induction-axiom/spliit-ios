@@ -96,6 +96,17 @@
         }
       }
     },
+    "%@ paid": {
+      "comment": "On an expense row, before what it does to your balance: who paid it. The argument is their name.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ a payé"
+          }
+        }
+      }
+    },
     "%@ still to allocate.": {
       "localizations": {
         "fr": {
@@ -1512,6 +1523,17 @@
         }
       }
     },
+    "Not involved": {
+      "comment": "On an expense row, after who paid: you neither paid for it nor share in it.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non concerné"
+          }
+        }
+      }
+    },
     "Not set": {
       "localizations": {
         "fr": {
@@ -2685,12 +2707,56 @@
         }
       }
     },
+    "You borrowed %@": {
+      "comment": "On an expense row: what this expense leaves you owing. The argument is an amount.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous avez emprunté %@"
+          }
+        }
+      }
+    },
+    "You lent %@": {
+      "comment": "On an expense row: what this expense leaves you owed. The argument is an amount.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous avez prêté %@"
+          }
+        }
+      }
+    },
     "You owe": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Vous devez"
+          }
+        }
+      }
+    },
+    "You paid back %@": {
+      "comment": "On a reimbursement row: the amount you paid someone back.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous avez remboursé %@"
+          }
+        }
+      }
+    },
+    "You were paid back %@": {
+      "comment": "On a reimbursement row: the amount someone paid you back.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On vous a remboursé %@"
           }
         }
       }

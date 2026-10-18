@@ -10,6 +10,9 @@ struct ExpenseRow: View {
     let expense: ExpenseListItem
     let payerPosition: Int
     let formatter: MoneyFormatter
+    /// Who the person holding the phone said they are in this group. Nil until they have, and
+    /// then the row has no "you" to speak for.
+    let activeParticipantID: String?
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -33,13 +36,8 @@ struct ExpenseRow: View {
                     // spelled out beside it, so this is the glanceable half of the same fact.
                     ParticipantDot(position: payerPosition, size: 7)
 
-                    Text(paidByDescription)
+                    paidByLine
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        // One line, so a run of expenses stays a list you can scan rather than a
-                        // stack of paragraphs — the full split is one tap away. Accessibility
-                        // sizes get more room, where a single line would be three words.
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
                         .accessibilityIdentifier(AccessibilityID.ExpenseList.rowPaidBy(expense.id))
                 }
             }
@@ -69,6 +67,62 @@ struct ExpenseRow: View {
             }
         }
         .contentShape(.rect)
+    }
+
+    /// Who paid, and — once you have said who you are — what the expense does to your balance.
+    ///
+    /// The balance takes the place of the "for …" names rather than a line of its own, so a row
+    /// keeps its height. VoiceOver still reads the whole sentence.
+    @ViewBuilder
+    private var paidByLine: some View {
+        if let you = activeParticipantID, let summary = yourSummary(you) {
+            // The payer's name goes whole or not at all; a truncated name says less than the
+            // dot beside it, which is already in their colour.
+            ViewThatFits(in: .horizontal) {
+                if expense.paidBy.id != you {
+                    Text("\(expense.paidBy.name) paid").foregroundStyle(.secondary)
+                        + Text(verbatim: " · ").foregroundStyle(.secondary)
+                        + summary
+                }
+                summary
+            }
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(paidByDescription) + Text(verbatim: ". ") + summary)
+        } else {
+            Text(paidByDescription)
+                .foregroundStyle(.secondary)
+                // One line, so a run of expenses stays a list you can scan rather than a
+                // stack of paragraphs — the full split is one tap away. Accessibility
+                // sizes get more room, where a single line would be three words.
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
+        }
+    }
+
+    /// What this expense does to your balance, tinted like a balance because it has a direction.
+    /// Nil when you paid exactly your own share, which says nothing "Paid by …" does not.
+    private func yourSummary(_ you: String) -> Text? {
+        guard let balance = ExpenseBalance.of(you, in: expense) else {
+            return Text("Not involved").foregroundStyle(.tertiary)
+        }
+        guard balance != 0 else { return nil }
+        return Text(balanceDescription(balance))
+            .fontWeight(.medium)
+            .foregroundStyle(Money.Sign(balance: balance).tint)
+    }
+
+    /// The amount set in the money face, inside the sentence rather than beside it, so the
+    /// currency symbol stays in one element with its digits.
+    private func balanceDescription(_ balance: Int) -> LocalizedStringKey {
+        let amount = Text(formatter.string(minorUnits: abs(balance)))
+            .font(.system(.footnote, design: .rounded, weight: .semibold).monospacedDigit())
+        // A reimbursement settles a debt rather than creating one, so "lent" would misread it.
+        return switch (expense.isReimbursement, balance > 0) {
+        case (false, true): "You lent \(amount)"
+        case (false, false): "You borrowed \(amount)"
+        case (true, true): "You paid back \(amount)"
+        case (true, false): "You were paid back \(amount)"
+        }
     }
 
     /// Empty rather than "Uncategorized" when the server sends no category: an accessibility
