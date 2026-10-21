@@ -96,13 +96,13 @@
         }
       }
     },
-    "%@ paid": {
-      "comment": "On an expense row, before what it does to your balance: who paid it. The argument is their name.",
+    "%@ paid · %@": {
+      "comment": "On an expense row: who paid it, then what it does to your balance. The arguments are their name and that summary.",
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ a payé"
+            "value": "%1$@ a payé · %2$@"
           }
         }
       }
@@ -1674,6 +1674,17 @@
         }
       }
     },
+    "Paid by %@ for %@. %@": {
+      "comment": "VoiceOver label for an expense row: who paid, who it was for, then what it does to your balance.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payé par %1$@ pour %2$@. %3$@"
+          }
+        }
+      }
+    },
     "Paid for": {
       "localizations": {
         "fr": {
@@ -2707,6 +2718,17 @@
         }
       }
     },
+    "You are owed %@": {
+      "comment": "On an income row: your share of money somebody else received. The argument is an amount.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On vous doit %@"
+          }
+        }
+      }
+    },
     "You borrowed %@": {
       "comment": "On an expense row: what this expense leaves you owing. The argument is an amount.",
       "localizations": {
@@ -2735,6 +2757,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vous devez"
+          }
+        }
+      }
+    },
+    "You owe %@": {
+      "comment": "On an income row: the others' shares of money you received. The argument is an amount.",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous devez %@"
           }
         }
       }

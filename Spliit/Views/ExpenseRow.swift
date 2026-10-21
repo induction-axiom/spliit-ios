@@ -76,21 +76,31 @@ struct ExpenseRow: View {
     @ViewBuilder
     private var paidByLine: some View {
         if let you = activeParticipantID, let summary = yourSummary(you) {
-            // The payer's name goes whole or not at all; a truncated name says less than the
-            // dot beside it, which is already in their colour.
-            ViewThatFits(in: .horizontal) {
-                if expense.paidBy.id != you {
-                    Text("\(expense.paidBy.name) paid").foregroundStyle(.secondary)
-                        + Text(verbatim: " · ").foregroundStyle(.secondary)
-                        + summary
+            let withPayer = Text("\(expense.paidBy.name) paid · \(summary)")
+            Group {
+                if expense.paidBy.id == you {
+                    summary
+                } else if dynamicTypeSize.isAccessibilitySize {
+                    // `ViewThatFits` measures each option on one line, where this never fits at
+                    // these sizes; wrapping is what keeps who paid.
+                    withPayer
+                } else {
+                    // The payer's name goes whole or not at all; a truncated name says less than
+                    // the dot beside it, which is already in their colour.
+                    ViewThatFits(in: .horizontal) {
+                        withPayer
+                        summary
+                    }
                 }
-                summary
             }
+            .foregroundStyle(.secondary)
             .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(paidByDescription) + Text(verbatim: ". ") + summary)
+            .accessibilityLabel(
+                Text("Paid by \(expense.paidBy.name) for \(paidForNames). \(summary)")
+            )
         } else {
-            Text(paidByDescription)
+            Text("Paid by \(expense.paidBy.name) for \(paidForNames)")
                 .foregroundStyle(.secondary)
                 // One line, so a run of expenses stays a list you can scan rather than a
                 // stack of paragraphs — the full split is one tap away. Accessibility
@@ -100,7 +110,8 @@ struct ExpenseRow: View {
     }
 
     /// What this expense does to your balance, tinted like a balance because it has a direction.
-    /// Nil when you paid exactly your own share, which says nothing "Paid by …" does not.
+    /// Nil when it leaves you even — your own share paid, or a share that came to nothing — which
+    /// says nothing "Paid by … for …", naming you, does not.
     private func yourSummary(_ you: String) -> Text? {
         guard let balance = ExpenseBalance.of(you, in: expense) else {
             return Text("Not involved").foregroundStyle(.tertiary)
@@ -116,12 +127,13 @@ struct ExpenseRow: View {
     private func balanceDescription(_ balance: Int) -> LocalizedStringKey {
         let amount = Text(formatter.string(minorUnits: abs(balance)))
             .font(.system(.footnote, design: .rounded, weight: .semibold).monospacedDigit())
-        // A reimbursement settles a debt rather than creating one, so "lent" would misread it.
-        return switch (expense.isReimbursement, balance > 0) {
-        case (false, true): "You lent \(amount)"
-        case (false, false): "You borrowed \(amount)"
-        case (true, true): "You paid back \(amount)"
-        case (true, false): "You were paid back \(amount)"
+        return switch ExpenseBalance.Reading(balance: balance, of: expense) {
+        case .lent: "You lent \(amount)"
+        case .borrowed: "You borrowed \(amount)"
+        case .paidBack: "You paid back \(amount)"
+        case .wasPaidBack: "You were paid back \(amount)"
+        case .isOwed: "You are owed \(amount)"
+        case .owes: "You owe \(amount)"
         }
     }
 
@@ -132,8 +144,7 @@ struct ExpenseRow: View {
         return Text(category.displayName)
     }
 
-    private var paidByDescription: String {
-        let names = expense.paidFor.map(\.participant.name).formatted(.list(type: .and))
-        return String(localized: "Paid by \(expense.paidBy.name) for \(names)")
+    private var paidForNames: String {
+        expense.paidFor.map(\.participant.name).formatted(.list(type: .and))
     }
 }

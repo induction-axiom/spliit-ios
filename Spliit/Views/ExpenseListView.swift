@@ -11,6 +11,15 @@ struct ExpenseListView: View {
     /// The instance this group is on. Every request from this screen goes through it: a group ID
     /// only means anything to the server that issued it.
     private var client: TRPCClient { app.client(forGroup: model.groupID) }
+
+    /// Who the person holding the phone said they are, read from the store rather than from
+    /// `model.actorID`, which is set only once the group screen appears and so missed the
+    /// first frame.
+    private var activeParticipantID: String? {
+        app.recentGroups.actorID(
+            inGroup: model.groupID, participants: model.group?.participants ?? []
+        )
+    }
     let model: GroupDetailModel
     let onAdd: () -> Void
     let onEdit: (String) -> Void
@@ -77,7 +86,7 @@ struct ExpenseListView: View {
                                 expense: expense,
                                 payerPosition: model.participantPosition(expense.paidBy.id),
                                 formatter: model.moneyFormatter,
-                                activeParticipantID: model.actorID
+                                activeParticipantID: activeParticipantID
                             )
                         }
                         .buttonStyle(.plain)

@@ -1,6 +1,6 @@
-import SpliitAPI
 import Testing
 
+@testable import SpliitAPI
 @testable import SpliitCore
 
 @Suite("Expense balance")
@@ -103,5 +103,30 @@ struct ExpenseBalanceTests {
         let refund = expense(amount: -3_000, paidBy: ana, [(ana, 100), (bruno, 100), (chloe, 100)])
         #expect(ExpenseBalance.of("ana", in: refund) == -2_000)
         #expect(ExpenseBalance.of("bruno", in: refund) == 1_000)
+    }
+
+    /// In the split for nothing is still in it: "Paid by Bruno for Ana and Bruno" names them.
+    @Test("A share that comes to nothing leaves you even, not uninvolved")
+    func zeroShare() {
+        let snack = expense(
+            amount: 1_000, splitMode: .byShares, paidBy: bruno, [(ana, 0), (bruno, 100)]
+        )
+        #expect(ExpenseBalance.of("ana", in: snack) == 0)
+    }
+
+    @Test("A balance reads by what the expense was, not only by its sign")
+    func reading() {
+        let dinner = expense(amount: 9_000, paidBy: ana, [(ana, 100), (bruno, 100)])
+        #expect(ExpenseBalance.Reading(balance: 4_500, of: dinner) == .lent)
+        #expect(ExpenseBalance.Reading(balance: -4_500, of: dinner) == .borrowed)
+
+        let payback = expense(amount: 6_769, isReimbursement: true, paidBy: bruno, [(ana, 100)])
+        #expect(ExpenseBalance.Reading(balance: 6_769, of: payback) == .paidBack)
+        #expect(ExpenseBalance.Reading(balance: -6_769, of: payback) == .wasPaidBack)
+
+        // Ana received the refund and holds the others' shares; Bruno lent nobody anything.
+        let refund = expense(amount: -3_000, paidBy: ana, [(ana, 100), (bruno, 100), (chloe, 100)])
+        #expect(ExpenseBalance.Reading(balance: -2_000, of: refund) == .owes)
+        #expect(ExpenseBalance.Reading(balance: 1_000, of: refund) == .isOwed)
     }
 }
